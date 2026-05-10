@@ -1,0 +1,419 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+enum Role {
+  OWNER
+  GM
+  ADMIN
+  RECEPTION
+  SALES
+  TRAINER
+  MEMBER
+}
+
+enum MemberStatus {
+  ACTIVE
+  EXPIRED
+  FREEZE
+  CANCELLED
+}
+
+enum PTStatus {
+  PENDING_CONFIRMATION
+  CONFIRMED
+  CANCELLED
+  NO_SHOW
+  DISPUTE
+}
+
+enum PaymentStatus {
+  PAID
+  PENDING
+  FAILED
+  REFUNDED
+  VOID
+}
+
+enum LeadStatus {
+  NEW_LEAD
+  CONTACTED
+  INTERESTED
+  TRIAL_BOOKED
+  VISITED
+  PROPOSAL_SENT
+  HOT_LEAD
+  WON
+  LOST
+  FOLLOW_UP_LATER
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_CUSTOMER
+  RESOLVED
+  CLOSED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  role          Role      @default(MEMBER)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  memberProfile Member?
+  trainerProfile Trainer?
+  staffProfile  Staff?
+}
+
+model Member {
+  id                String       @id @default(cuid())
+  userId            String       @unique
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  memberId          String       @unique // Gym's internal ID
+  phone             String?
+  lineId            String?
+  dob               DateTime?
+  gender            String?
+  emergencyContact  String?
+  status            MemberStatus @default(ACTIVE)
+  
+  // Membership info
+  currentPackageId  String?
+  startDate         DateTime?
+  expiryDate        DateTime?
+  
+  // PT info
+  assignedTrainerId String?
+  assignedTrainer   Trainer?     @relation(fields: [assignedTrainerId], references: [id])
+  
+  // Relations
+  purchases         Purchase[]
+  checkIns          CheckIn[]
+  ptSessions        PTSession[]
+  bookings          ClassBooking[]
+  complaints        Complaint[]
+  goals             Goal[]
+  healthScreening   HealthScreening?
+  postureAssessments PostureAssessment[]
+  nutritionProfile  NutritionProfile?
+  measurements      Measurement[]
+  trainingPlans     ClientTrainingPlan[]
+}
+
+model Trainer {
+  id                String       @id @default(cuid())
+  userId            String       @unique
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trainerId         String       @unique
+  phone             String?
+  level             String?
+  specialty         String?
+  status            String       @default("ACTIVE")
+  
+  // Relations
+  clients           Member[]
+  ptSessions        PTSession[]
+  classSchedules    ClassSchedule[]
+  commissions       Commission[]
+  programsCreated   TrainingProgram[]
+}
+
+model Staff {
+  id                String       @id @default(cuid())
+  userId            String       @unique
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  phone             String?
+  department        String?
+}
+
+model MembershipPackage {
+  id          String     @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  durationDays Int
+  purchases   Purchase[]
+}
+
+model PTPackage {
+  id          String     @id @default(cuid())
+  name        String
+  price       Float
+  sessions    Int
+  purchases   Purchase[]
+}
+
+model Purchase {
+  id                  String             @id @default(cuid())
+  memberId            String
+  member              Member             @relation(fields: [memberId], references: [id])
+  membershipPackageId String?
+  membershipPackage   MembershipPackage? @relation(fields: [membershipPackageId], references: [id])
+  ptPackageId         String?
+  ptPackage           PTPackage?         @relation(fields: [ptPackageId], references: [id])
+  amount              Float
+  createdAt           DateTime           @default(now())
+  payments            Payment[]
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  purchaseId    String
+  purchase      Purchase      @relation(fields: [purchaseId], references: [id])
+  amount        Float
+  method        String        // Cash, Transfer, QR, Credit Card, etc.
+  status        PaymentStatus @default(PENDING)
+  receiptNumber String?
+  slipUrl       String?
+  createdAt     DateTime      @default(now())
+}
+
+model PTSession {
+  id              String   @id @default(cuid())
+  memberId        String
+  member          Member   @relation(fields: [memberId], references: [id])
+  trainerId       String
+  trainer         Trainer  @relation(fields: [trainerId], references: [id])
+  date            DateTime
+  startTime       DateTime
+  endTime         DateTime
+  status          PTStatus @default(PENDING_CONFIRMATION)
+  trainerNote     String?
+  memberFeedback  String?
+  trainingLogId   String?
+  createdAt       DateTime @default(now())
+}
+
+model TrainingProgram {
+  id          String         @id @default(cuid())
+  name        String
+  goal        String?
+  level       String?
+  duration    Int            // in weeks
+  description String?
+  createdBy   String
+  trainer     Trainer        @relation(fields: [createdBy], references: [id])
+  weeks       ProgramWeek[]
+  plans       ClientTrainingPlan[]
+  createdAt   DateTime       @default(now())
+}
+
+model ProgramWeek {
+  id          String           @id @default(cuid())
+  programId   String
+  program     TrainingProgram  @relation(fields: [programId], references: [id], onDelete: Cascade)
+  weekNumber  Int
+  focus       String?
+  notes       String?
+  sessions    ProgramSession[]
+}
+
+model ProgramSession {
+  id          String            @id @default(cuid())
+  weekId      String
+  week        ProgramWeek       @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  name        String
+  order       Int
+  goal        String?
+  intensity   String?
+  equipment   String?
+  warmUp      String?
+  coolDown    String?
+  exercises   SessionExercise[]
+}
+
+model SessionExercise {
+  id          String         @id @default(cuid())
+  sessionId   String
+  session     ProgramSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  name        String
+  category    String?
+  sets        Int
+  reps        String?
+  weight      String?
+  tempo       String?
+  rest        String?
+  rpe         Int?
+  videoLink   String?
+  notes       String?
+}
+
+model ClientTrainingPlan {
+  id          String          @id @default(cuid())
+  memberId    String
+  member      Member          @relation(fields: [memberId], references: [id])
+  programId   String
+  program     TrainingProgram @relation(fields: [programId], references: [id])
+  startDate   DateTime
+  status      String          @default("ACTIVE")
+}
+
+model ClassSchedule {
+  id          String         @id @default(cuid())
+  name        String
+  date        DateTime
+  startTime   DateTime
+  endTime     DateTime
+  trainerId   String
+  trainer     Trainer        @relation(fields: [trainerId], references: [id])
+  capacity    Int
+  bookings    ClassBooking[]
+}
+
+model ClassBooking {
+  id          String        @id @default(cuid())
+  classId     String
+  class       ClassSchedule @relation(fields: [classId], references: [id])
+  memberId    String
+  member      Member        @relation(fields: [memberId], references: [id])
+  status      String        @default("BOOKED") // BOOKED, ATTENDED, NO_SHOW, CANCELLED
+  createdAt   DateTime      @default(now())
+}
+
+model CheckIn {
+  id          String   @id @default(cuid())
+  memberId    String
+  member      Member   @relation(fields: [memberId], references: [id])
+  type        String   @default("GYM") // GYM, CLASS, PT
+  createdAt   DateTime @default(now())
+}
+
+model Lead {
+  id          String     @id @default(cuid())
+  name        String
+  phone       String?
+  email       String?
+  source      String?
+  interest    String?
+  budget      String?
+  goal        String?
+  status      LeadStatus @default(NEW_LEAD)
+  salesOwner  String?
+  notes       String?
+  followUps   FollowUpNote[]
+  createdAt   DateTime   @default(now())
+}
+
+model FollowUpNote {
+  id          String   @id @default(cuid())
+  leadId      String
+  lead        Lead     @relation(fields: [leadId], references: [id])
+  note        String
+  createdAt   DateTime @default(now())
+}
+
+model Complaint {
+  id          String          @id @default(cuid())
+  memberId    String
+  member      Member          @relation(fields: [memberId], references: [id])
+  type        String          // Service, Cleanliness, etc.
+  description String
+  status      ComplaintStatus @default(OPEN)
+  resolution  String?
+  closedAt    DateTime?
+  createdAt   DateTime        @default(now())
+}
+
+model InventoryItem {
+  id            String    @id @default(cuid())
+  name          String
+  category      String?
+  quantity      Int       @default(0)
+  minStock      Int       @default(5)
+  costPrice     Float?
+  sellingPrice  Float?
+  transactions  InventoryTransaction[]
+}
+
+model InventoryTransaction {
+  id          String        @id @default(cuid())
+  itemId      String
+  item        InventoryItem @relation(fields: [itemId], references: [id])
+  type        String        // IN, OUT, DAMAGED
+  quantity    Int
+  notes       String?
+  createdAt   DateTime      @default(now())
+}
+
+model Commission {
+  id          String   @id @default(cuid())
+  trainerId   String
+  trainer     Trainer  @relation(fields: [trainerId], references: [id])
+  amount      Float
+  type        String   // PT, RENEWAL, CONVERSION
+  date        DateTime @default(now())
+}
+
+model Goal {
+  id          String   @id @default(cuid())
+  memberId    String
+  member      Member   @relation(fields: [memberId], references: [id])
+  mainGoal    String
+  targetValue String?
+  targetDate  DateTime?
+  status      String   @default("IN_PROGRESS")
+  progress    Int      @default(0)
+  createdAt   DateTime @default(now())
+}
+
+model HealthScreening {
+  id          String   @id @default(cuid())
+  memberId    String   @unique
+  member      Member   @relation(fields: [memberId], references: [id])
+  data        Json     // Stores all PAR-Q answers
+  createdAt   DateTime @default(now())
+}
+
+model PostureAssessment {
+  id          String   @id @default(cuid())
+  memberId    String
+  member      Member   @relation(fields: [memberId], references: [id])
+  type        String   // Lordosis, Kyphosis, etc.
+  assessment  Json     // Detailed findings
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+}
+
+model NutritionProfile {
+  id          String   @id @default(cuid())
+  memberId    String   @unique
+  member      Member   @relation(fields: [memberId], references: [id])
+  height      Float?
+  weight      Float?
+  age         Int?
+  bodyFat     Float?
+  muscleMass  Float?
+  bmr         Float?
+  tdee        Float?
+  calories    Int?
+  protein     Int?     // grams
+  carbs       Int?     // grams
+  fat         Int?     // grams
+  createdAt   DateTime @default(now())
+}
+
+model Measurement {
+  id          String   @id @default(cuid())
+  memberId    String
+  member      Member   @relation(fields: [memberId], references: [id])
+  weight      Float?
+  bmi         Float?
+  bodyFat     Float?
+  chest       Float?
+  waist       Float?
+  hips        Float?
+  arms        Float?
+  thighs      Float?
+  date        DateTime @default(now())
+}

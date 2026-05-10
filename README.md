@@ -4,7 +4,7 @@ A Premium Gym Management Platform featuring an Interactive Dashboard, Member Man
 
 ## 🚀 Local Development Setup
 
-To ensure the application runs correctly on your local machine with all features and sample data, please follow these steps:
+To ensure the application runs correctly on your local machine, please ensure you have **Node.js 18.17 or later** installed. Follow these steps:
 
 ### 1. Install Dependencies
 Navigate to the project directory and run:
@@ -12,20 +12,25 @@ Navigate to the project directory and run:
 npm install
 ```
 
-### 2. Configure Environment Variables
+### 2. Generate Prisma Client
+```bash
+npx prisma generate
+```
+
+### 3. Configure Environment Variables
 Copy the example environment file to create your own `.env` file:
 ```bash
 cp .env.example .env
 ```
 
-### 3. Initialize Database & Seed Data
+### 4. Initialize Database & Seed Data
 This step creates the local SQLite database and populates it with sample records (e.g., Coach Mike, John Doe) so you can test the platform immediately:
 ```bash
 npx prisma db push
 npx prisma db seed
 ```
 
-### 4. Start the Application
+### 5. Start the Application
 ```bash
 npm run dev
 ```

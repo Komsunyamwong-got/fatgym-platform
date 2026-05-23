@@ -26,7 +26,7 @@ const formSchema = z.object({
   description: z.string().min(5, "Description must be at least 5 characters"),
 });
 
-export function ComplaintForm() {
+export function ComplaintForm({ onSuccess }: { onSuccess?: (newComplaint: any) => void }) {
   const router = useRouter();
   const [members, setMembers] = useState<any[]>([]);
   
@@ -57,7 +57,12 @@ export function ComplaintForm() {
     const res = await createComplaint(values);
     if (res.success) {
       toast.success("Complaint recorded");
-      router.refresh();
+      form.reset();
+      if (onSuccess) {
+        onSuccess(res.data);
+      } else {
+        router.refresh();
+      }
     } else {
       toast.error("Failed to record complaint");
     }

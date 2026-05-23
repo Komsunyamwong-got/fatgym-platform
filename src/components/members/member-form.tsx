@@ -24,7 +24,7 @@ const formSchema = z.object({
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
 });
 
-export function MemberForm() {
+export function MemberForm({ onSuccess }: { onSuccess?: () => void }) {
   const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -42,6 +42,7 @@ export function MemberForm() {
       toast.success("Member created successfully");
       form.reset();
       router.refresh();
+      if (onSuccess) onSuccess();
     } else {
       toast.error(res.error || "Failed to create member");
     }

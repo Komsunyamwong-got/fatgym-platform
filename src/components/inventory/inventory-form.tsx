@@ -20,28 +20,37 @@ import { useRouter } from "next/navigation";
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   category: z.string().min(2, "Category is required"),
-  quantity: z.string().transform((val) => parseInt(val, 10)),
-  sellingPrice: z.string().transform((val) => parseFloat(val)),
+  quantity: z.string().min(1, "Quantity is required"),
+  sellingPrice: z.string().min(1, "Selling price is required"),
 });
 
-export function InventoryForm() {
+export function InventoryForm({ onSuccess }: { onSuccess?: (newItem: any) => void }) {
   const router = useRouter();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       category: "",
-      quantity: "0" as any,
-      sellingPrice: "0" as any,
+      quantity: "0",
+      sellingPrice: "0",
     },
   });
 
   async function onSubmit(values: any) {
-    const res = await createInventoryItem(values);
+    const data = {
+      ...values,
+      quantity: parseInt(values.quantity, 10),
+      sellingPrice: parseFloat(values.sellingPrice),
+    };
+    const res = await createInventoryItem(data);
     if (res.success) {
       toast.success("Item added successfully");
       form.reset();
-      router.refresh();
+      if (onSuccess) {
+        onSuccess(res.data);
+      } else {
+        router.refresh();
+      }
     } else {
       toast.error("Failed to add item");
     }

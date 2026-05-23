@@ -27,6 +27,9 @@ export async function createComplaint(data: any) {
         description: data.description,
         status: "OPEN",
       },
+      include: {
+        member: { include: { user: true } },
+      },
     });
     revalidatePath("/complaints");
     return { success: true, data: complaint };
@@ -38,14 +41,51 @@ export async function createComplaint(data: any) {
 
 export async function updateComplaintStatus(id: string, status: ComplaintStatus) {
   try {
-    await db.complaint.update({
+    const complaint = await db.complaint.update({
       where: { id },
       data: { status },
+      include: {
+        member: { include: { user: true } },
+      },
+    });
+    revalidatePath("/complaints");
+    return { success: true, data: complaint };
+  } catch (error) {
+    console.error("Failed to update complaint status:", error);
+    return { success: false };
+  }
+}
+
+export async function resolveComplaint(id: string, resolution: string) {
+  try {
+    const complaint = await db.complaint.update({
+      where: { id },
+      data: {
+        status: "RESOLVED",
+        resolution,
+        closedAt: new Date(),
+      },
+      include: {
+        member: { include: { user: true } },
+      },
+    });
+    revalidatePath("/complaints");
+    return { success: true, data: complaint };
+  } catch (error) {
+    console.error("Failed to resolve complaint:", error);
+    return { success: false };
+  }
+}
+
+export async function deleteComplaint(id: string) {
+  try {
+    await db.complaint.delete({
+      where: { id },
     });
     revalidatePath("/complaints");
     return { success: true };
   } catch (error) {
-    console.error("Failed to update complaint status:", error);
+    console.error("Failed to delete complaint:", error);
     return { success: false };
   }
 }

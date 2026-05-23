@@ -61,3 +61,74 @@ export async function updateStock(id: string, quantity: number, type: "IN" | "OU
     return { success: false };
   }
 }
+
+export async function getInventoryTransactions() {
+  try {
+    return await db.inventoryTransaction.findMany({
+      include: {
+        item: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  } catch (error) {
+    console.error("Failed to fetch transactions:", error);
+    return [];
+  }
+}
+
+export async function deleteInventoryItem(id: string) {
+  try {
+    // Delete any transactions referencing this item first
+    await db.inventoryTransaction.deleteMany({
+      where: { itemId: id },
+    });
+    
+    await db.inventoryItem.delete({
+      where: { id },
+    });
+    revalidatePath("/inventory");
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete inventory item:", error);
+    return { success: false, error: "Database error" };
+  }
+}
+
+export async function recordStockAction(data: { itemId: string; quantity: number; type: "IN" | "OUT" | "DAMAGED"; notes?: string }) {
+  try {
+    const transaction = await db.$transaction(async (tx) => {
+      // 1. Update item stock quantity
+      const item = await tx.inventoryItem.update({
+        where: { id: data.itemId },
+        data: {
+          quantity: {
+            increment: data.type === "IN" ? data.quantity : -data.quantity,
+          },
+        },
+      });
+
+      // 2. Create the stock transaction record
+      const trans = await tx.inventoryTransaction.create({
+        data: {
+          itemId: data.itemId,
+          type: data.type,
+          quantity: data.quantity,
+          notes: data.notes || null,
+        },
+        include: {
+          item: true,
+        }
+      });
+
+      return { item, transaction: trans };
+    });
+
+    revalidatePath("/inventory");
+    return { success: true, data: transaction };
+  } catch (error) {
+    console.error("Failed to record stock action:", error);
+    return { success: false, error: "Database error" };
+  }
+}

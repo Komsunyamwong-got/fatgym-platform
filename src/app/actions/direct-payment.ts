@@ -11,7 +11,6 @@ export async function recordDirectPayment(data: any) {
         data: {
           memberId: data.memberId,
           amount: data.amount,
-          status: "COMPLETED",
         },
       });
 
@@ -24,6 +23,15 @@ export async function recordDirectPayment(data: any) {
           status: "PAID",
           receiptNumber: `REC-${Date.now()}`,
         },
+        include: {
+          purchase: {
+            include: {
+              member: { include: { user: true } },
+              membershipPackage: true,
+              ptPackage: true,
+            }
+          }
+        }
       });
 
       return payment;

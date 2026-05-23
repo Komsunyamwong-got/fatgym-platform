@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -39,28 +41,28 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MemberForm } from "@/components/members/member-form";
 import Link from "next/link";
+import { toast } from "sonner";
 
 interface DashboardClientProps {
   memberCount: number;
   pendingSessions: number;
   lowStockItems: number;
   openComplaints: number;
+  totalRevenue: number;
+  leadsCount: number;
+  salesData: any[];
 }
 
 export function DashboardClient({
   memberCount,
   pendingSessions,
   lowStockItems,
-  openComplaints
+  openComplaints,
+  totalRevenue,
+  leadsCount,
+  salesData
 }: DashboardClientProps) {
-  const salesData = [
-    { month: "Jan", sales: 4000 },
-    { month: "Feb", sales: 3000 },
-    { month: "Mar", sales: 5000 },
-    { month: "Apr", sales: 4500 },
-    { month: "May", sales: 6000 },
-    { month: "Jun", sales: 5500 },
-  ];
+  const [isMemberDialogOpen, setIsMemberDialogOpen] = useState(false);
 
   const stats = [
     { 
@@ -80,16 +82,16 @@ export function DashboardClient({
       bg: "bg-primary/10"
     },
     { 
-      label: "Monthly Revenue", 
-      value: "฿45,200", 
+      label: "Total Revenue", 
+      value: `฿${totalRevenue.toLocaleString()}`, 
       trend: "+8.4%", 
       icon: CreditCard,
       color: "text-green-600",
       bg: "bg-green-100"
     },
     { 
-      label: "Leads (HOT)", 
-      value: "14", 
+      label: "Total Leads", 
+      value: leadsCount.toString(), 
       trend: "+2 new", 
       icon: TrendingUp,
       color: "text-orange-600",
@@ -108,7 +110,7 @@ export function DashboardClient({
           <Button variant="outline" size="icon" onClick={() => window.dispatchEvent(new CustomEvent("open-global-search"))}>
             <Search className="w-4 h-4" />
           </Button>
-          <Dialog>
+          <Dialog open={isMemberDialogOpen} onOpenChange={setIsMemberDialogOpen}>
             <DialogTrigger
               className={cn(buttonVariants({ variant: "default" }), "gap-2 px-6")}
             >
@@ -118,7 +120,7 @@ export function DashboardClient({
               <DialogHeader>
                 <DialogTitle>Add New Member</DialogTitle>
               </DialogHeader>
-              <MemberForm />
+              <MemberForm onSuccess={() => setIsMemberDialogOpen(false)} />
             </DialogContent>
           </Dialog>
         </div>
@@ -183,11 +185,11 @@ export function DashboardClient({
                   <DropdownMenuGroup>
                     <DropdownMenuLabel>Inventory Actions</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/inventory" className="flex items-center gap-2 cursor-pointer">
+                    <Link href="/inventory" className="w-full">
+                      <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
                         <Eye className="w-4 h-4" /> View Inventory
-                      </Link>
-                    </DropdownMenuItem>
+                      </DropdownMenuItem>
+                    </Link>
                     <DropdownMenuItem className="flex items-center gap-2 cursor-pointer" onClick={() => toast.info("Restock functionality coming soon.")}>
                       <Plus className="w-4 h-4" /> Restock
                     </DropdownMenuItem>
@@ -214,11 +216,11 @@ export function DashboardClient({
                   <DropdownMenuGroup>
                     <DropdownMenuLabel>Complaint Actions</DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
-                      <Link href="/complaints" className="flex items-center gap-2 cursor-pointer">
+                    <Link href="/complaints" className="w-full">
+                      <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
                         <Eye className="w-4 h-4" /> View Complaints
-                      </Link>
-                    </DropdownMenuItem>
+                      </DropdownMenuItem>
+                    </Link>
                     <DropdownMenuItem className="flex items-center gap-2 cursor-pointer" onClick={() => toast.info("Resolution workflow coming soon.")}>
                       <CheckCircle className="w-4 h-4" /> Mark Resolved
                     </DropdownMenuItem>

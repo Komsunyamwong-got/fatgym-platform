@@ -1,8 +1,9 @@
 import { MemberProfileView } from "@/components/members/member-profile-view";
+import { MemberDetailModal } from "@/components/members/member-detail-modal";
 import db from "@/lib/db";
 import { notFound } from "next/navigation";
 
-export default async function MemberDetailPage({ params }: { params: { id: string } }) {
+export default async function MemberDetailInterceptingRoute({ params }: { params: { id: string } }) {
   const { id } = await params;
   
   const member = await db.member.findUnique({
@@ -30,5 +31,9 @@ export default async function MemberDetailPage({ params }: { params: { id: strin
 
   if (!member) return notFound();
 
-  return <MemberProfileView member={member} />;
+  return (
+    <MemberDetailModal>
+      <MemberProfileView member={member} />
+    </MemberDetailModal>
+  );
 }

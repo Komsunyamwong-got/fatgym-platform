@@ -21,11 +21,11 @@ import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   memberId: z.string().min(1, "Select a member"),
-  amount: z.string().transform((val) => parseFloat(val)),
+  amount: z.string().min(1, "Amount is required"),
   method: z.string().min(1, "Select payment method"),
 });
 
-export function PaymentForm() {
+export function PaymentForm({ onSuccess }: { onSuccess?: (newPayment: any) => void }) {
   const router = useRouter();
   const [members, setMembers] = useState<any[]>([]);
   
@@ -33,7 +33,7 @@ export function PaymentForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       memberId: "",
-      amount: "0" as any,
+      amount: "0",
       method: "CASH",
     },
   });
@@ -47,10 +47,19 @@ export function PaymentForm() {
   }, []);
 
   async function onSubmit(values: any) {
-    const res = await recordDirectPayment(values);
+    const data = {
+      ...values,
+      amount: parseFloat(values.amount),
+    };
+    const res = await recordDirectPayment(data);
     if (res.success) {
       toast.success("Transaction recorded successfully");
-      router.refresh();
+      form.reset();
+      if (onSuccess) {
+        onSuccess(res.data);
+      } else {
+        router.refresh();
+      }
     } else {
       toast.error("Failed to record payment");
     }

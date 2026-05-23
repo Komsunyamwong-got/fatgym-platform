@@ -23,7 +23,7 @@ import { Loader2 } from "lucide-react";
 const formSchema = z.object({
   name: z.string().min(2, "Name is required"),
   trainerId: z.string().min(1, "Select a trainer"),
-  capacity: z.string().transform((val) => parseInt(val, 10)),
+  capacity: z.string().min(1, "Capacity is required"),
   startTime: z.string().min(1, "Start time is required"),
   date: z.string().min(1, "Date is required"),
 });
@@ -32,13 +32,38 @@ export function ClassForm() {
   const router = useRouter();
   const [trainers, setTrainers] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Setup options for pure English selectors
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+  const months = [
+    { value: "01", label: "January" },
+    { value: "02", label: "February" },
+    { value: "03", label: "March" },
+    { value: "04", label: "April" },
+    { value: "05", label: "May" },
+    { value: "06", label: "June" },
+    { value: "07", label: "July" },
+    { value: "08", label: "August" },
+    { value: "09", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" },
+  ];
+  const years = Array.from({ length: 5 }, (_, i) => new Date().getFullYear() + i);
+  
+  const timeSlots = Array.from({ length: 30 }, (_, i) => {
+    const hour = Math.floor(i / 2) + 7; // 7 AM to 9:30 PM
+    const min = i % 2 === 0 ? "00" : "30";
+    const padHour = String(hour).padStart(2, '0');
+    return `${padHour}:${min}`;
+  });
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: "",
       trainerId: "",
-      capacity: "20" as any,
+      capacity: "20",
       date: new Date().toISOString().split('T')[0],
       startTime: "18:00",
     },
@@ -65,6 +90,7 @@ export function ClassForm() {
 
     const res = await createClass({
       ...values,
+      capacity: parseInt(values.capacity, 10),
       startTime: start,
       endTime: end,
     });
@@ -101,7 +127,7 @@ export function ClassForm() {
               <FormLabel>Trainer</FormLabel>
               <select 
                 {...field} 
-                className="w-full p-2 rounded-md border bg-background disabled:opacity-50"
+                className="w-full p-2 rounded-lg border border-input bg-background text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50"
                 disabled={isLoading}
               >
                 <option value="">{isLoading ? "Loading trainers..." : "Select Trainer"}</option>
@@ -117,15 +143,50 @@ export function ClassForm() {
           <FormField
             control={form.control}
             name="date"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Date</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+            render={({ field }) => {
+              const val = field.value || new Date().toISOString().split('T')[0];
+              const [y, m, d] = val.split('-');
+              
+              const updateDate = (newY: string, newM: string, newD: string) => {
+                field.onChange(`${newY}-${newM}-${newD.padStart(2, '0')}`);
+              };
+
+              return (
+                <FormItem>
+                  <FormLabel>Date</FormLabel>
+                  <div className="grid grid-cols-3 gap-1">
+                    <select 
+                      value={d}
+                      onChange={(e) => updateDate(y, m, e.target.value)}
+                      className="p-2 text-xs rounded-lg border border-input bg-background font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    >
+                      {days.map(day => (
+                        <option key={day} value={String(day).padStart(2, '0')}>{day}</option>
+                      ))}
+                    </select>
+                    <select 
+                      value={m}
+                      onChange={(e) => updateDate(y, e.target.value, d)}
+                      className="p-2 text-xs rounded-lg border border-input bg-background font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    >
+                      {months.map(mon => (
+                        <option key={mon.value} value={mon.value}>{mon.label.substring(0, 3)}</option>
+                      ))}
+                    </select>
+                    <select 
+                      value={y}
+                      onChange={(e) => updateDate(e.target.value, m, d)}
+                      className="p-2 text-xs rounded-lg border border-input bg-background font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    >
+                      {years.map(yr => (
+                        <option key={yr} value={String(yr)}>{yr}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
           />
           <FormField
             control={form.control}
@@ -134,7 +195,14 @@ export function ClassForm() {
               <FormItem>
                 <FormLabel>Time</FormLabel>
                 <FormControl>
-                  <Input type="time" {...field} />
+                  <select 
+                    {...field}
+                    className="w-full p-2 rounded-lg border border-input bg-background text-sm font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-primary/20"
+                  >
+                    {timeSlots.map(time => (
+                      <option key={time} value={time}>{time}</option>
+                    ))}
+                  </select>
                 </FormControl>
                 <FormMessage />
               </FormItem>

@@ -31,7 +31,7 @@ export function Topbar({ user }: TopbarProps) {
   const pathname = usePathname();
   
   const allItems = [...navItems, ...memberNavItems];
-  const currentItem = allItems.find((item) => item.href === pathname);
+  const currentItem = allItems.find((item) => pathname === item.href || (item.href !== '/' && pathname.startsWith(`${item.href}/`)));
   const title = currentItem?.label || "FAT GYM";
 
   return (
@@ -67,16 +67,16 @@ export function Topbar({ user }: TopbarProps) {
             <DropdownMenuGroup>
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href="/settings" className="flex items-center gap-2 cursor-pointer">
+              <Link href="/settings" className="w-full">
+                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
                   <Settings className="w-4 h-4" /> Settings
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href="/profile" className="flex items-center gap-2 cursor-pointer">
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/profile" className="w-full">
+                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer">
                   <UserIcon className="w-4 h-4" /> Profile
-                </Link>
-              </DropdownMenuItem>
+                </DropdownMenuItem>
+              </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-destructive flex items-center gap-2 cursor-pointer">

@@ -27,7 +27,7 @@ export async function createClass(data: any) {
         capacity: data.capacity,
         startTime: data.startTime,
         endTime: data.endTime,
-        category: "Fitness",
+        date: typeof data.date === "string" ? new Date(data.date) : (data.date || new Date(data.startTime)),
       },
     });
     revalidatePath("/classes");

@@ -3,8 +3,6 @@ import { Outfit } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 
-export const runtime = 'edge';
-
 const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-sans",

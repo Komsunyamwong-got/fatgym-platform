@@ -21,6 +21,8 @@ import {
   Dumbbell
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { cn, getAvatarColorClass } from "@/lib/utils";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -183,7 +185,7 @@ export function TrainersList({ trainers }: { trainers: any[] }) {
             </DialogHeader>
             <form onSubmit={handleAdd} className="space-y-4 pt-4" noValidate>
               <div className="space-y-2">
-                <label className="text-sm font-bold">Trainer Name <span className="text-red-500">*</span></label>
+                <Label className="text-sm font-bold">Trainer Name <span className="text-red-500">*</span></Label>
                 <Input 
                   placeholder="e.g. Coach Mike" 
                   value={name} 
@@ -193,7 +195,7 @@ export function TrainersList({ trainers }: { trainers: any[] }) {
                 {nameError && <p className="text-xs font-bold text-red-500 mt-1">{nameError}</p>}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-bold">Email Address <span className="text-red-500">*</span></label>
+                <Label className="text-sm font-bold">Email Address <span className="text-red-500">*</span></Label>
                 <Input 
                   type="email" 
                   placeholder="e.g. mike@fatgym.com" 
@@ -204,11 +206,11 @@ export function TrainersList({ trainers }: { trainers: any[] }) {
                 {emailError && <p className="text-xs font-bold text-red-500 mt-1">{emailError}</p>}
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-bold">Phone Number</label>
+                <Label className="text-sm font-bold">Phone Number</Label>
                 <Input placeholder="e.g. 081-234-5678" value={phone} onChange={(e) => setPhone(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-bold">Coaching Level</label>
+                <Label className="text-sm font-bold">Coaching Level</Label>
                 <select 
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   value={level} 
@@ -220,7 +222,7 @@ export function TrainersList({ trainers }: { trainers: any[] }) {
                 </select>
               </div>
               <div className="space-y-2">
-                <label className="text-sm font-bold">Specialty</label>
+                <Label className="text-sm font-bold">Specialty</Label>
                 <Input placeholder="e.g. Weight Loss & Powerlifting" value={specialty} onChange={(e) => setSpecialty(e.target.value)} />
               </div>
               <DialogFooter className="pt-4">
@@ -258,10 +260,10 @@ export function TrainersList({ trainers }: { trainers: any[] }) {
               </div>
               <CardContent className="pt-0 pb-6 px-6 relative">
                 <div className="flex justify-between items-end -mt-12 mb-4">
-                  <Avatar className="w-24 h-24 border-4 border-background shadow-lg">
-                    <AvatarImage src={trainer.user.image || ""} />
-                    <AvatarFallback className="bg-card text-primary text-2xl font-bold">
-                      {trainer.user.name?.split(" ").map((n: string) => n[0]).join("")}
+                  <Avatar className="w-16 h-16 border-2 border-primary/10">
+                    <AvatarImage src={trainer.user.image || undefined} alt={trainer.user.name || "Trainer"} />
+                    <AvatarFallback className={cn("text-2xl font-bold", getAvatarColorClass(trainer.user.name || "T"))}>
+                      {trainer.user.name?.split(" ").map((n: string) => n[0]).join("") || "T"}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex gap-2 mb-2">
@@ -373,10 +375,10 @@ export function TrainersList({ trainers }: { trainers: any[] }) {
           {detailTarget && (
             <div className="space-y-6 pt-6">
               <div className="flex flex-col items-center text-center space-y-4">
-                <Avatar className="w-28 h-28 border-4 border-primary/10 shadow-md">
-                  <AvatarImage src={detailTarget.user.image || ""} />
-                  <AvatarFallback className="bg-primary/5 text-primary text-3xl font-black">
-                    {detailTarget.user.name?.split(" ").map((n: string) => n[0]).join("")}
+                <Avatar className="w-24 h-24 border-4 border-background shadow-md">
+                  <AvatarImage src={detailTarget.user.image || undefined} alt={detailTarget.user.name || "Trainer"} />
+                  <AvatarFallback className={cn("text-3xl font-black", getAvatarColorClass(detailTarget.user.name || "T"))}>
+                    {detailTarget.user.name?.split(" ").map((n: string) => n[0]).join("") || "T"}
                   </AvatarFallback>
                 </Avatar>
                 <div>

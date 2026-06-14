@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { navItems, memberNavItems } from "@/lib/nav-config";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Bell, Search, LogOut, Settings, User as UserIcon } from "lucide-react";
+import { cn, getAvatarColorClass } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Role } from "@prisma/client";
@@ -70,7 +71,7 @@ export function Topbar({ user, gymName = "FAT GYM", logoUrl }: TopbarProps) {
                 </div>
                 <Avatar className="w-10 h-10 border-2 border-primary/20">
                   <AvatarImage src={user.image ?? undefined} />
-                  <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                  <AvatarFallback className={cn("font-bold text-white", getAvatarColorClass(user.name))}>
                     {user.name.split(" ").map((n: string) => n[0]).join("")}
                   </AvatarFallback>
                 </Avatar>

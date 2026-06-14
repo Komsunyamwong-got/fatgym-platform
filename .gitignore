@@ -45,3 +45,5 @@ next-env.d.ts
 
 # scratch files
 /scratch/
+.env*
+fatgym_dump.dump

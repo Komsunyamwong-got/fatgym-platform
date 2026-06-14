@@ -8,8 +8,15 @@ neonConfig.webSocketConstructor = ws;
 
 const prismaClientSingleton = () => {
   const connectionString = process.env.DATABASE_URL || "";
-  const adapter = new PrismaNeon({ connectionString });
-  return new PrismaClient({ adapter });
+  
+  // Use Neon adapter only if the connection string contains 'neon.tech'
+  // or if we are clearly running on Vercel. For local docker postgres, use standard PrismaClient.
+  if (connectionString.includes("neon.tech") || process.env.VERCEL) {
+    const adapter = new PrismaNeon({ connectionString } as any);
+    return new PrismaClient({ adapter });
+  }
+  
+  return new PrismaClient();
 };
 
 declare global {

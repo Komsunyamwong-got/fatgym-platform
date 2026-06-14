@@ -11,8 +11,21 @@ export async function addTrainer(data: {
   specialty?: string;
 }) {
   try {
-    const trainerCount = await db.trainer.count();
-    const trainerId = `T-${new Date().getFullYear()}-${String(trainerCount + 1).padStart(3, "0")}`;
+    const currentYear = new Date().getFullYear();
+    const lastTrainer = await db.trainer.findFirst({
+      where: { trainerId: { startsWith: `T-${currentYear}-` } },
+      orderBy: { trainerId: 'desc' },
+    });
+
+    let nextNumber = 1;
+    if (lastTrainer && lastTrainer.trainerId) {
+      const parts = lastTrainer.trainerId.split('-');
+      if (parts.length === 3) {
+        nextNumber = parseInt(parts[2], 10) + 1;
+      }
+    }
+    
+    const trainerId = `T-${currentYear}-${String(nextNumber).padStart(3, "0")}`;
 
     // Create user and trainer in a transaction
     await db.$transaction(async (tx) => {

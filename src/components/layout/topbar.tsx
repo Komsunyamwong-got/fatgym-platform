@@ -69,7 +69,7 @@ export function Topbar({ user, gymName = "FAT GYM", logoUrl }: TopbarProps) {
                   <span className="text-xs text-muted-foreground uppercase font-bold tracking-widest mt-1">{user.role}</span>
                 </div>
                 <Avatar className="w-10 h-10 border-2 border-primary/20">
-                  <AvatarImage src={user.image} />
+                  <AvatarImage src={user.image ?? undefined} />
                   <AvatarFallback className="bg-primary/10 text-primary font-bold">
                     {user.name.split(" ").map((n: string) => n[0]).join("")}
                   </AvatarFallback>

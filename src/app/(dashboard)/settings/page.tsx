@@ -178,15 +178,21 @@ export default function SettingsPage() {
     }
 
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append("logo", file);
-    const res = await uploadLogo(formData);
-    setIsUploading(false);
-    if (res.success && res.url) {
-      setLogoUrl(res.url);
-      toast.success("Gym logo uploaded successfully!");
-    } else {
-      toast.error(res.error || "Failed to upload logo.");
+    try {
+      const formData = new FormData();
+      formData.append("logo", file);
+      const res = await uploadLogo(formData);
+      if (res.success && res.url) {
+        setLogoUrl(res.url);
+        toast.success("Gym logo uploaded successfully!");
+      } else {
+        toast.error(res.error || "Failed to upload logo.");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Upload failed. The image might be too large or the network is unstable.");
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -201,16 +207,22 @@ export default function SettingsPage() {
     }
 
     setIsUploading(true);
-    const formData = new FormData();
-    formData.append("avatar", file);
-    const res = await uploadAvatar(formData);
-    setIsUploading(false);
-    if (res.success && res.url) {
-      setAvatarUrl(res.url);
-      toast.success("Profile avatar updated successfully!");
-      router.refresh();
-    } else {
-      toast.error(res.error || "Failed to upload avatar.");
+    try {
+      const formData = new FormData();
+      formData.append("avatar", file);
+      const res = await uploadAvatar(formData);
+      if (res.success && res.url) {
+        setAvatarUrl(res.url);
+        toast.success("Profile avatar updated successfully!");
+        router.refresh();
+      } else {
+        toast.error(res.error || "Failed to upload avatar.");
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Upload failed. The image might be too large or the network is unstable.");
+    } finally {
+      setIsUploading(false);
     }
   };
 

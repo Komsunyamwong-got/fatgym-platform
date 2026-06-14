@@ -170,6 +170,13 @@ export default function SettingsPage() {
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // 2MB size limit
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image is too large. Please select an image under 2MB.");
+      return;
+    }
+
     setIsUploading(true);
     const formData = new FormData();
     formData.append("logo", file);
@@ -186,6 +193,13 @@ export default function SettingsPage() {
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // 2MB size limit
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image is too large. Please select an image under 2MB.");
+      return;
+    }
+
     setIsUploading(true);
     const formData = new FormData();
     formData.append("avatar", file);

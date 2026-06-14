@@ -24,10 +24,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getGymSettings, updateGymSettings } from "@/app/actions/settings";
-import { uploadLogo } from "@/app/actions/upload";
+import { getGymSettings, updateGymSettings, getUserProfile, updateUserProfile } from "@/app/actions/settings";
+import { uploadLogo, uploadAvatar } from "@/app/actions/upload";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { useRouter, usePathname } from "next/navigation";
 
 export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
@@ -45,9 +46,11 @@ export default function SettingsPage() {
   const [selectedTimezone, setSelectedTimezone] = useState("(GMT+07:00) Bangkok");
 
   // Account Profile States
+  const pathname = usePathname();
+  const router = useRouter();
   const [accountData, setAccountData] = useState({
-    fullName: "Gym Owner",
-    email: "owner@fatgym.com",
+    fullName: "",
+    email: "",
     bio: "Founder & Head Coach at FAT GYM."
   });
 
@@ -59,7 +62,9 @@ export default function SettingsPage() {
   });
 
   const [logoUrl, setLogoUrl] = useState("/uploads/gym-logo.png");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const avatarInputRef = useRef<HTMLInputElement>(null);
 
   // Load persistent configurations on mount
   useEffect(() => {
@@ -83,6 +88,18 @@ export default function SettingsPage() {
           
           if (res.logoUrl) {
             setLogoUrl(res.logoUrl);
+          }
+        }
+        
+        const userProfile = await getUserProfile();
+        if (userProfile) {
+          setAccountData(prev => ({
+            ...prev,
+            fullName: userProfile.name || "",
+            email: userProfile.email || "",
+          }));
+          if (userProfile.image) {
+            setAvatarUrl(userProfile.image);
           }
         }
       } catch (error) {
@@ -118,18 +135,18 @@ export default function SettingsPage() {
       toast.error("Full Name and Email are required");
       return;
     }
+    
     setIsSaving(true);
-    const res = await updateGymSettings({
-      fullName: accountData.fullName,
+    const res = await updateUserProfile({
+      name: accountData.fullName,
       email: accountData.email,
-      bio: accountData.bio
     });
     setIsSaving(false);
     
     if (res.success) {
       toast.success("Profile account details updated!");
     } else {
-      toast.error("Failed to update profile account details.");
+      toast.error(res.error || "Failed to update profile account details.");
     }
   };
 
@@ -163,6 +180,23 @@ export default function SettingsPage() {
       toast.success("Gym logo uploaded successfully!");
     } else {
       toast.error(res.error || "Failed to upload logo.");
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("avatar", file);
+    const res = await uploadAvatar(formData);
+    setIsUploading(false);
+    if (res.success && res.url) {
+      setAvatarUrl(res.url);
+      toast.success("Profile avatar updated successfully!");
+      router.refresh();
+    } else {
+      toast.error(res.error || "Failed to upload avatar.");
     }
   };
 
@@ -376,10 +410,30 @@ export default function SettingsPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-4 pb-4">
-                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-xl font-bold text-primary border border-primary/20">
-                  GO
-                </div>
-                <Button variant="outline" size="sm" className="font-semibold border-zinc-200">Change Avatar</Button>
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar" className="w-16 h-16 rounded-full object-cover border-2 border-primary/20" />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-xl font-bold text-primary border border-primary/20 uppercase">
+                    {accountData.fullName ? accountData.fullName.substring(0, 2) : "GO"}
+                  </div>
+                )}
+                <input 
+                  type="file" 
+                  ref={avatarInputRef} 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handleAvatarUpload}
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="font-semibold border-zinc-200"
+                  onClick={() => avatarInputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  {isUploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  Change Avatar
+                </Button>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">

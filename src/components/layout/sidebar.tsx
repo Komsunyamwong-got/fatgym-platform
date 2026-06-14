@@ -11,9 +11,11 @@ import { Button } from "@/components/ui/button";
 
 interface SidebarProps {
   role: Role;
+  gymName?: string;
+  logoUrl?: string;
 }
 
-export function Sidebar({ role }: SidebarProps) {
+export function Sidebar({ role, gymName = "FAT GYM", logoUrl }: SidebarProps) {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -22,22 +24,32 @@ export function Sidebar({ role }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "hidden lg:flex flex-col border-r bg-card transition-all duration-300 h-screen sticky top-0",
+        "hidden lg:flex flex-col border-r bg-card transition-all duration-300 h-screen sticky top-0 z-40",
         collapsed ? "w-[80px]" : "w-[260px]"
       )}
     >
-      <div className="p-6 flex items-center justify-between">
+      <div className="p-6 flex items-center justify-between h-[80px]">
         {!collapsed && (
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-xl">F</span>
-            </div>
-            <span className="font-bold text-xl tracking-tight">FAT GYM</span>
+          <div className="flex items-center gap-3 overflow-hidden">
+            {logoUrl ? (
+              <img src={logoUrl} alt="Gym Logo" className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
+            ) : (
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                <span className="text-primary-foreground font-bold text-xl">{gymName.charAt(0)}</span>
+              </div>
+            )}
+            <span className="font-bold text-xl tracking-tight truncate" title={gymName}>{gymName}</span>
           </div>
         )}
         {collapsed && (
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center mx-auto">
-            <span className="text-primary-foreground font-bold">F</span>
+          <div className="w-full flex justify-center">
+            {logoUrl ? (
+              <img src={logoUrl} alt="Gym Logo" className="w-8 h-8 rounded-lg object-cover" />
+            ) : (
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-primary-foreground font-bold">{gymName.charAt(0)}</span>
+              </div>
+            )}
           </div>
         )}
       </div>

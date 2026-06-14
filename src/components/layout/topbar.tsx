@@ -25,9 +25,11 @@ interface TopbarProps {
     role: Role;
     image?: string;
   };
+  gymName?: string;
+  logoUrl?: string;
 }
 
-export function Topbar({ user }: TopbarProps) {
+export function Topbar({ user, gymName = "FAT GYM", logoUrl }: TopbarProps) {
   const pathname = usePathname();
   
   const allItems = [...navItems, ...memberNavItems];
@@ -36,7 +38,19 @@ export function Topbar({ user }: TopbarProps) {
 
   return (
     <header className="h-[70px] border-b bg-card flex items-center justify-between px-6 sticky top-0 z-40">
-      <h1 className="text-xl font-bold lg:text-2xl tracking-tight">{title}</h1>
+      <div className="flex items-center gap-3">
+        <div className="lg:hidden flex items-center gap-2">
+          {logoUrl ? (
+            <img src={logoUrl} alt="Gym Logo" className="w-8 h-8 rounded-lg object-cover flex-shrink-0" />
+          ) : (
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+              <span className="text-primary-foreground font-bold text-lg">{gymName.charAt(0)}</span>
+            </div>
+          )}
+          <h1 className="text-xl font-bold tracking-tight sm:hidden max-w-[140px] truncate">{title}</h1>
+        </div>
+        <h1 className="text-xl font-bold lg:text-2xl tracking-tight hidden sm:block">{title}</h1>
+      </div>
 
       <div className="flex items-center gap-4">
         <GlobalSearch />

@@ -59,3 +59,37 @@ export async function updateGymSettings(data: any) {
     return { success: false };
   }
 }
+
+import { getSession } from "@/lib/auth";
+
+export async function getUserProfile() {
+  const session = await getSession();
+  if (!session) return null;
+  return session.user;
+}
+
+export async function updateUserProfile(data: { name: string; email: string }) {
+  const session = await getSession();
+  if (!session) return { success: false, error: "Unauthorized" };
+
+  // Very basic email validation regex
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(data.email)) {
+    return { success: false, error: "Invalid email format" };
+  }
+
+  try {
+    const updatedUser = await db.user.update({
+      where: { id: session.user.id },
+      data: {
+        name: data.name,
+        email: data.email,
+      }
+    });
+    revalidatePath("/settings");
+    return { success: true, user: updatedUser };
+  } catch (error) {
+    console.error("Failed to update user profile:", error);
+    return { success: false, error: "Failed to update profile or email already exists" };
+  }
+}

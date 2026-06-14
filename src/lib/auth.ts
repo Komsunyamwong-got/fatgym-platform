@@ -17,6 +17,7 @@ export async function getSession() {
           name: owner.name,
           email: owner.email,
           role: owner.role as Role,
+          image: owner.image,
         }
       };
     }
@@ -28,6 +29,7 @@ export async function getSession() {
         name: "Gym Owner (Demo)",
         email: "owner@fatgym.com",
         role: "OWNER" as Role,
+        image: null,
       }
     };
   }
@@ -41,6 +43,7 @@ export async function getSession() {
       name: user.name,
       email: user.email,
       role: user.role as Role,
+      image: user.image,
     }
   };
 }

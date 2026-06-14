@@ -23,7 +23,7 @@ interface TopbarProps {
   user: {
     name: string;
     role: Role;
-    image?: string;
+    image?: string | null;
   };
   gymName?: string;
   logoUrl?: string;
